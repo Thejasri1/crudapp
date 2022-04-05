@@ -8,29 +8,29 @@ router.get("/api/employees", (_, res) => {
     if (!err) {
       res.send(data);
     } else {
-      res.send("Employee Details Not Found");
+      res.json(`Employee Details Not Found`);
     }
   });
 });
 
 //post employee details
 router.post("/api/employee", (req, _) => {
-  try {
-    const emp = new Employee({
-      name: req.body.name,
-      id: req.body.id,
-      salary: req.body.salary,
-      email: req.body.email,
-    });
+  const emp = new Employee({
+    name: req.body.name,
+    id: req.body.id,
+    salary: req.body.salary,
+    email: req.body.email,
+  });
 
-    emp.save((res, data) => {
+  emp.save((res, data) => {
+    try {
       res
         .statusCode(200)
         .json({ message: "Employee Added Successfully", data: data });
-    });
-  } catch (err) {
-    res.send(`<h1> Employee Data Not Added.</h1>`);
-  }
+    } catch (err) {
+      res.json(`Employee Data Not Added`);
+    }
+  });
 });
 
 //get single employee
@@ -41,7 +41,7 @@ router.get("/api/employee/:id", (req, res) => {
         .status(200)
         .json({ message: "Employee data fetched successfully", data: data });
     } else {
-      res.send(`<h1>The Employee Not Found.</h1>`);
+      res.json(`The Employee Not Found`);
     }
   });
 });
@@ -63,7 +63,7 @@ router.put("/api/employee/:id", (req, res) => {
           .status(200)
           .json({ message: "Employee updated successfully", data: data });
       } else {
-        res.send(`<h1>The Employee details not updated.</h1>`);
+        res.json(`The Employee details not updated.`);
       }
     }
   );
@@ -76,7 +76,7 @@ router.delete("/api/employee/:id", (req, res) => {
         .status(200)
         .json({ message: "Employee Deleted Successfully", data: data });
     } else {
-      res.send(`<h1>The Employee Not Found.</h1>`);
+      res.json(`The Employee Not Found`);
     }
   });
 });

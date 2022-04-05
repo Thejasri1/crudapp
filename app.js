@@ -1,12 +1,11 @@
 const express = require("express");
 const dotenv = require("dotenv");
 const bodyParser = require("body-parser");
+const connectDB = require("./config/db");
 const app = express();
 
 const hostname = "127.0.0.1";
 const port = 3000;
-
-const connectDB = require("./config/db");
 
 dotenv.config({ path: "./config/config.env" });
 connectDB();

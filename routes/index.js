@@ -20,25 +20,31 @@ const isValidEmail = (email) => {
 }
 
 //post employee details
-router.post('/api/employee', (req, res) => {
-    if (isValidEmail(req.body.email)) {
-        const emp = new Employee({
-            name: req.body.name,
-            id: req.body.id,
-            salary: req.body.salary,
-            email: req.body.email,
-        })
+router.post('/api/employee', async (req, res) => {
+    const userExit = await Employee.findOne({ email: req.body.email })
 
-        try {
-            emp.save(emp).then((data) => {
-                res.send(data)
-                res.send('Emp Added')
+    if (!userExit) {
+        if (isValidEmail(req.body.email)) {
+            const emp = new Employee({
+                name: req.body.name,
+                id: req.body.id,
+                salary: req.body.salary,
+                email: req.body.email,
             })
-        } catch (err) {
-            res.json(`Employee Data Not Added`)
+
+            try {
+                emp.save(emp).then((data) => {
+                    res.send(data)
+                    res.send('Emp Added')
+                })
+            } catch (err) {
+                res.json(`Employee Data Not Added`)
+            }
+        } else {
+            res.json('email is not valid')
         }
     } else {
-        res.json('email is not valid')
+        res.json('Email is already exist')
     }
 })
 
@@ -56,31 +62,36 @@ router.get('/api/employee/:id', (req, res) => {
     })
 })
 //update employee
-router.put('/api/employee/:id', (req, res) => {
-    if (isValidEmail(req.body.email)) {
-        const emp = {
-            name: req.body.name,
-            id: req.body.id,
-            salary: req.body.salary,
-            email: req.body.email,
-        }
-        Employee.findByIdAndUpdate(
-            req.params.id,
-            { $set: emp },
-            { new: true },
-            (err, data) => {
-                if (!err) {
-                    res.status(200).json({
-                        message: 'Employee updated successfully',
-                        data: data,
-                    })
-                } else {
-                    res.json(`The Employee details not updated.`)
-                }
+router.put('/api/employee/:id', async (req, res) => {
+    const userExit = await Employee.findOne({ email: req.body.email })
+    if (!userExit) {
+        if (isValidEmail(req.body.email)) {
+            const emp = {
+                name: req.body.name,
+                id: req.body.id,
+                salary: req.body.salary,
+                email: req.body.email,
             }
-        )
+            Employee.findByIdAndUpdate(
+                req.params.id,
+                { $set: emp },
+                { new: true },
+                (err, data) => {
+                    if (!err) {
+                        res.status(200).json({
+                            message: 'Employee updated successfully',
+                            data: data,
+                        })
+                    } else {
+                        res.json(`The Employee details not updated.`)
+                    }
+                }
+            )
+        } else {
+            res.json('Email is not valid!')
+        }
     } else {
-        res.json('Email is not valid!')
+        res.json('Email is already exist')
     }
 })
 //delete Employee

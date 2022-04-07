@@ -1,6 +1,6 @@
 const express = require('express')
 const router = express.Router()
-const { body } = require('express-validator')
+const { body, validationResult } = require('express-validator')
 const { Employee } = require('../models/employee')
 
 router.get('/api/employees', (_, res) => {
@@ -12,41 +12,38 @@ router.get('/api/employees', (_, res) => {
         }
     })
 })
-
-const isValidEmail = (email) => {
-    const re =
-        /^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/
-    return re.test(String(email).toLowerCase())
-}
-
 //post employee details
-router.post('/api/employee', async (req, res) => {
-    const userExit = await Employee.findOne({ email: req.body.email })
-
-    if (!userExit) {
-        if (isValidEmail(req.body.email)) {
-            const emp = new Employee({
-                name: req.body.name,
-                id: req.body.id,
-                salary: req.body.salary,
-                email: req.body.email,
-            })
-
-            try {
-                emp.save(emp).then((data) => {
-                    res.send(data)
-                    res.send('Emp Added')
-                })
-            } catch (err) {
-                res.json(`Employee Data Not Added`)
-            }
-        } else {
-            res.json('email is not valid')
-        }
-    } else {
-        res.json('Email is already exist')
+router.use(express.json())
+router.post(
+  '/api/employee',body('email').isEmail().withMessage('Email is not valid')
+  ,body('name').exists({ checkFalsy : true }).withMessage('Name should not be null')
+  ,body('id').exists({ checkFalsy : true }).withMessage('Employee id is not null')
+  ,body('salary').exists({checkFalsy : true}).isInt().withMessage('salary must be in numbers')
+  .custom((salary)=>{
+    if(salary>=10000000){
+        return Promise.reject('salary is too high');
     }
-})
+    
+  }),
+
+async (req, res) => {
+   const errors = validationResult(req);
+   if (!errors.isEmpty()) {
+      return res.status(400).json(errors.array());
+           
+    }
+    const userExist = await Employee.findOne({ email: req.body.email })
+        if (userExist) {
+            res.json('Email is already exist')
+        } 
+    Employee.create({
+      name: req.body.name,
+      id: req.body.id,
+      salary:req.body.salary,
+      email:req.body.email
+    }).then(user => res.json(user)).catch(()=>res.json('Employee not added'));
+    },
+);
 
 //get single employee
 router.get('/api/employee/:id', (req, res) => {
@@ -63,36 +60,32 @@ router.get('/api/employee/:id', (req, res) => {
 })
 //update employee
 router.put('/api/employee/:id', async (req, res) => {
-    const userExit = await Employee.findOne({ email: req.body.email })
-    if (!userExit) {
-        if (isValidEmail(req.body.email)) {
-            const emp = {
-                name: req.body.name,
-                id: req.body.id,
-                salary: req.body.salary,
-                email: req.body.email,
-            }
-            Employee.findByIdAndUpdate(
-                req.params.id,
-                { $set: emp },
-                { new: true },
-                (err, data) => {
-                    if (!err) {
-                        res.status(200).json({
-                            message: 'Employee updated successfully',
-                            data: data,
-                        })
+    const userExist = await Employee.findOne({ email: req.body.email })
+        if (userExist) {
+            res.json('Email is already exist')
+        } 
+        const emp = {
+            name: req.body.name,
+            id: req.body.id,
+            salary: req.body.salary,
+            email: req.body.email,
+        }
+        Employee.findByIdAndUpdate(
+            req.params.id,
+            { $set: emp },
+            { new: true },
+            (err, data) => {
+                if (!err) {
+                    res.status(200).json({
+                        message: 'Employee updated successfully',
+                        data: data,
+                    })
                     } else {
                         res.json(`The Employee details not updated.`)
                     }
                 }
             )
-        } else {
-            res.json('Email is not valid!')
-        }
-    } else {
-        res.json('Email is already exist')
-    }
+       
 })
 //delete Employee
 router.delete('/api/employee/:id', (req, res) => {

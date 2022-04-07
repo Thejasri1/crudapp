@@ -14,5 +14,5 @@ app.use(bodyParser.json())
 app.use('/', require('./routes/index'))
 
 app.listen(port, hostname, () => {
-    console.log(`server is running at http://${hostname}:${port}`)
+  console.log(`server is running at http://${hostname}:${port}`)
 })

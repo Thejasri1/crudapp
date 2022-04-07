@@ -51,7 +51,7 @@ router.post(
       email: req.body.email,
     })
       .then((user) => res.json(user))
-      .catch(() => res.json('Employee not added'))
+      .catch(() => res.status(400).json('Employee not added'))
   }
 )
 
@@ -64,7 +64,7 @@ router.get('/api/employee/:id', (req, res) => {
         data: data,
       })
     } else {
-      res.json(`The Employee Not Found`)
+      res.status(400).json(`The Employee Not Found`)
     }
   })
 })
@@ -111,7 +111,7 @@ router.put(
             data: data,
           })
         } else {
-          res.json(`The Employee details not updated.`)
+          res.status(400).json(`The Employee details not updated.`)
         }
       }
     )
@@ -126,7 +126,7 @@ router.delete('/api/employee/:id', (req, res) => {
         data: data,
       })
     } else {
-      res.json(`The Employee Not Found`)
+      res.status(400).json(`The Employee Not Found`)
     }
   })
 })
